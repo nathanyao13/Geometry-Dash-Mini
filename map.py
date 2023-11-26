@@ -26,7 +26,7 @@ def onKeyPress(app, key):
     elif key == 's':
         app.speed = 'slow'
         app.stepsPerSecond = 2
-
+#testing for github
 def onStep(app):
     app.squareX -= 10
     if app.squareX + 50 <= 0:
