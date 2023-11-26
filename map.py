@@ -1,36 +1,93 @@
 from cmu_graphics import*
+import math
+import obstacles
+from block import playerBlock
+
 
 def onAppStart(app):
     app.width = 800
-    app.length = 1000
-    app.titlescreen = False 
-    app.stepsPerSecond = 5
-    app.squareX = app.width
+    app.height = 400
+    app.titleScreen = True
+    app.difficultySetting = False
+    app.stepsPerSecond = 10
+    app.obstacleX = 800
 
 def redrawAll(app):
-    if app.titlescreen == True:
-        drawLabel('Geometry Dash Mini', 400, 50, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+    #title screen 
+    if app.titleScreen == True:
+        #background color
+        drawRect(0,0,800,400,fill = 'lightblue', opacity = 80)
         #drawing for the title screen
-    else:
-        drawRect(app.squareX, 200, 50, 50, fill='red') 
-        drawRect(0,250,800, 250, fill = 'blue', border = 'black', opacity = 90)
+        drawLabel('Geometry Dash Mini', 400, 50, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+        #play button
+        drawRect(400, 200, 100, 100, fill='cyan', align = 'center', border = 'black')
+        drawRegularPolygon(395,200, 50, 3, fill = 'yellow', border = 'black', rotateAngle = 90, align = 'center')
+        #speed/difficulty setting
+        drawRect(400, 325, 200, 100, fill = 'cyan', align = 'center', border = 'black')
+        drawLabel('Select Difficulty', 400, 325, fill = 'lightgreen', font = 'orbitron', size = 27.5, border = 'black')
+    #speed/difficulty screen
+    elif app.difficultySetting == True and app.titleScreen == False:
+        #background color
+        drawRect(0,0,800,400,fill = 'lightblue', opacity = 80)
+        #different speeds
+        drawRect(150, 200, 200, 100, align = 'center', fill = 'cyan', border = 'black')
+        drawRect(400, 200, 200, 100, align = 'center', fill = 'cyan', border = 'black')
+        drawRect(650, 200, 200, 100, align = 'center', fill = 'cyan', border = 'black')
+        drawLabel('Slow', 150, 200, fill = 'lightgreen', border = 'black', font = 'orbitron', size = 45)
+        drawLabel('Moderate', 400, 200, fill = 'lightgreen', border = 'black', font = 'orbitron', size = 45)
+        drawLabel('Fast', 650, 200, fill = 'lightgreen', border = 'black', font = 'orbitron', size = 45)
+    #play screen 
+    elif app.titleScreen == False and app.difficultySetting == False:
+        #background color
+        drawRect(0,0,800,400,fill = 'lightblue', opacity = 80)
+        #floor
+        drawRect(0,250,800, 250, fill = 'blue', border = 'black', opacity = 90, borderWidth = 5)
+        #obstacle
+        drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+        #player block
+        drawRect(playerBlock.centerX, 225, 50, 50, fill = 'purple', border = 'white', align = 'center')
 
 def onKeyPress(app, key):
     # this is for the player to choose the difficulty/speed of the round
     if key == 'f':
         app.speed = 'fast'
-        app.stepsPerSecond = 50
+        app.stepsPerSecond = 30
     elif key == 'm':
         app.speed = 'moderate'
-        app.stepsPerSecond = 30
+        app.stepsPerSecond = 20
     elif key == 's':
         app.speed = 'slow'
         app.stepsPerSecond = 2
-#testing for github
+
 def onStep(app):
-    app.squareX -= 10
-    if app.squareX + 50 <= 0:
-        app.squareX = app.width #move obstacle back to the beginning
+    app.obstacleX -= 10
+    if app.obstacleX + 50 <= 0:
+        app.obstacleX = 800 #move obstacle back to the beginning
+
+def onMousePress(app, mouseX, mouseY):
+    #title screen options
+    if app.titleScreen == True and (mouseX >= 350 and mouseX <= 450) and (mouseY >= 150 and mouseY <= 250):
+        app.titleScreen = False
+    elif app.titleScreen == True and (mouseX >=200 and mouseX <= 600) and (mouseY >= 225 and mouseY <= 425):
+        app.titleScreen = False
+        app.difficultySetting = True
+    #difficulty options
+    if app.difficultySetting == True and (mouseX >= 50 and mouseX <= 250) and (mouseY >= 150 and mouseY <= 250):
+        app.stepsPerSecond = 10
+        app.difficultySetting = False
+        app.titleScreen = True
+    elif app.difficultySetting == True and (mouseX >= 300 and mouseX <= 500) and (mouseY >= 150 and mouseY <= 250):
+        app.stepsPerSecond = 20
+        app.difficultySetting = False
+        app.titleScreen = True
+    elif app.difficultySetting == True and (mouseX >= 550 and mouseX <= 750) and (mouseY >= 150 and mouseY <= 250):
+        app.stepsPerSecond = 30
+        app.difficultySetting = False
+        app.titleScreen = True
+    
+def distance(x1, y1, x2, y2):
+    distance = math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2) )
+    return distance
 
 def main():
     runApp()
