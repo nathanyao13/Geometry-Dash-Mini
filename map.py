@@ -22,9 +22,10 @@ class obstacle:
         self.topY = topY
 
 
-floor = obstacle('rectangle', 150, 225, 200)
-spike = obstacle('triangle', 30, 237.5, 224.5)
-#doubleSpike = obstacle 
+floor = obstacle('floor', 150, 225, 200)
+spike = obstacle('spike', 30, 237.5, 224.5)
+doubleSpike = obstacle ('doubleSpike', 30, 237.5, 224.5)
+tripleSpike = obstacle ('tripleSpike', 30, 237.5, 224.5)
 
 
 def onAppStart(app):
@@ -38,7 +39,7 @@ def onAppStart(app):
     app.jumping = False
     app.falling = False
     app.blockAngle = 0
-    app.obstacles = ['floor','spike']#doubleSpike,tripleSpike}
+    app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape]#doubleSpike,tripleSpike} #will add others later
     app.backgroundX = 0
     app.trail = True
     app.mapSpeed = 0
@@ -119,6 +120,13 @@ def drawPlayScreen(app):
             drawRect(app.obstacleX,app.obstacleY,150, 50, fill = 'blue', border = 'black', opacity = 50, borderWidth = 5)
         elif app.currentObstacle == 'spike':
             drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+        elif app.currentObstacle == 'doubleSpike':
+            drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+            drawRegularPolygon(app.obstacleX+45, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+        elif app.currentObstacle == 'tripleSpike':
+            drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+            drawRegularPolygon(app.obstacleX+45, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+            drawRegularPolygon(app.obstacleX+90, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
     #player block
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength, playerBlock.sideLength, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-10, playerBlock.sideLength-10, fill = 'blue', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
@@ -156,7 +164,7 @@ def onStep(app):
         app.obstacleX -= (10 + app.mapSpeed)
         if app.obstacleX + 150 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
-            app.currentObstacle = app.obstacles[random.randrange(0,2)]
+            app.currentObstacle = app.obstacles[random.randrange(0,4)]
     app.backgroundX -= 2 
     if app.backgroundX <= 0:
         app.backgroundX = 800
