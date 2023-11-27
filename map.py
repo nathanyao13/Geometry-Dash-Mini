@@ -1,8 +1,5 @@
 from cmu_graphics import*
 import math
-import obstacles
-from block import playerBlock
-
 
 def onAppStart(app):
     app.width = 800
@@ -11,6 +8,11 @@ def onAppStart(app):
     app.difficultySetting = False
     app.stepsPerSecond = 10
     app.obstacleX = 800
+    app.blockX = 150
+    app.blockY = 225
+    app.jumping = False
+    app.falling = False
+    app.blockAngle = 0
 
 def redrawAll(app):
     #title screen 
@@ -45,24 +47,28 @@ def redrawAll(app):
         #obstacle
         drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
         #player block
-        drawRect(playerBlock.centerX, 225, 50, 50, fill = 'purple', border = 'white', align = 'center')
+        drawRect(app.blockX, app.blockY, 50, 50, fill = 'purple', border = 'white', align = 'center', rotateAngle = app.blockAngle)
 
 def onKeyPress(app, key):
-    # this is for the player to choose the difficulty/speed of the round
-    if key == 'f':
-        app.speed = 'fast'
-        app.stepsPerSecond = 30
-    elif key == 'm':
-        app.speed = 'moderate'
-        app.stepsPerSecond = 20
-    elif key == 's':
-        app.speed = 'slow'
-        app.stepsPerSecond = 2
+    #jump mechanics
+    if key == 'space' and app.blockY == 225:
+        app.jumping = True
 
 def onStep(app):
     app.obstacleX -= 10
     if app.obstacleX + 50 <= 0:
         app.obstacleX = 800 #move obstacle back to the beginning
+    if app.jumping == True and app.blockY >= 125:
+        app.blockY -= 10
+        app.blockAngle += 4.5
+        if app.blockY == 125:
+            app.jumping = False
+            app.falling = True
+    if app.falling == True and app.blockY <= 225:
+        app.blockY += 10
+        app.blockAngle += 4.5
+        if app.blockY == 225:
+            app.falling = False
 
 def onMousePress(app, mouseX, mouseY):
     #title screen options

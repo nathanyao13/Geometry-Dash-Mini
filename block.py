@@ -4,3 +4,4 @@ class block:
         self.centerX = centerX
         self.centerY = centerY
         self.sidelength = sideLength
+
