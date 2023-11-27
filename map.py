@@ -38,8 +38,11 @@ def onAppStart(app):
     app.obstancles = set()
     app.backgroundX = 0
     app.trail = True
-    app.MapSpeed = 0
-
+    app.mapSpeed = 0
+    app.jumpMax = 100
+    app.countdown = 3
+    app.relativeCount = 0
+    app.playScreen = False
 
 
 
@@ -69,7 +72,16 @@ def drawDifficultyScreen(app):
 
 def drawTitleScreen(app):
     #background color
-    drawRect(0,0,800,400,fill = 'lightblue', opacity = 80)
+    for i in range(-800, app.width, 50):
+        drawRect(app.backgroundX + i, 0, 800, app.height, fill='lightblue', opacity=80)
+        drawRect(app.backgroundX + i, 0, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 50, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 100, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 150, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 200, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 250, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 300, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 350, 50, 50, fill='blue', opacity=10, border='white')
     #drawing for the title screen
     drawLabel('Geometry Dash Mini', 400, 50, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
     #play button
@@ -90,9 +102,13 @@ def drawPlayScreen(app):
         drawRect(app.backgroundX + i, 150, 50, 50, fill='blue', opacity=10, border='white')
         drawRect(app.backgroundX + i, 200, 50, 50, fill='blue', opacity=10, border='white')
     #floor
-    drawRect(0,250,800, 250, fill = 'blue', border = 'black', opacity = 90, borderWidth = 5)
-    #obstacle
-    drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+    drawRect(0,250,800, 250, fill = 'blue', border = 'black', opacity = 50, borderWidth = 5)
+    #Countdown
+    if app.countdown != 0:
+        drawLabel(f'{app.countdown}', 400, 200, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+    else:
+        #obstacle
+        drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
     #player block
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength, playerBlock.sideLength, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-10, playerBlock.sideLength-10, fill = 'blue', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
@@ -101,9 +117,9 @@ def drawPlayScreen(app):
     #player block trail
     if app.trail == True:
         for i in range(playerBlock.centerX - 75, playerBlock.centerX-25, 5):
-            drawCircle(i, playerBlock.centerY + random.randrange(0,15), 2, fill = 'purple')
-            drawCircle(i-5, playerBlock.centerY + random.randrange(0,15), 2, fill = 'white')
-            drawCircle(i-10, playerBlock.centerY + random.randrange(0,15), 2, fill = 'blue')
+            drawCircle(i, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'purple')
+            drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
+            drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
 
 
 
@@ -116,12 +132,25 @@ def onKeyPress(app, key):
 
 
 def onStep(app):
-    app.obstacleX -= 10
-    if app.obstacleX + 50 <= 0:
-        app.obstacleX = 800 #move obstacle back to the beginning
+    #Count screen 
+    if app.difficultySetting == False and app.titleScreen == False and app.playScreen == False:
+        app.relativeCount += 30
+        print(app.relativeCount)
+    if app.relativeCount == 900:
+        app.countdown = 2
+    elif app.relativeCount == 1800:
+        app.countdown = 1
+    elif app.relativeCount == 2700:
+        app.countdown = 0
+    #making sure that the map speed is different from the block jump speed so it runs smoother
+    if app.countdown == 0:
+        app.obstacleX -= (10 + app.mapSpeed)
+        if app.obstacleX + 50 <= 0:
+            app.obstacleX = 800 #move obstacle back to the beginning
     app.backgroundX -= 2 
     if app.backgroundX <= 0:
         app.backgroundX = 800
+    #jumping and falling animation
     if app.jumping == True and playerBlock.centerY >= 125:
         playerBlock.centerY -= 10
         playerBlock.angle += 4.5
@@ -148,20 +177,17 @@ def onMousePress(app, mouseX, mouseY):
         app.difficultySetting = True
     #difficulty options
     if app.difficultySetting == True and (mouseX >= 50 and mouseX <= 250) and (mouseY >= 150 and mouseY <= 250):
-        app.stepsPerSecond = 10
-        app.MapSpeed = -20
+        app.mapSpeed = -5
         app.difficultySetting = False
         app.titleScreen = True
     elif app.difficultySetting == True and (mouseX >= 300 and mouseX <= 500) and (mouseY >= 150 and mouseY <= 250):
-        app.stepsPerSecond = 20
         app.difficultySetting = False
         app.titleScreen = True
-        app.MapSpeed = 0
+        app.mapSpeed = 5
     elif app.difficultySetting == True and (mouseX >= 550 and mouseX <= 750) and (mouseY >= 150 and mouseY <= 250):
-        app.stepsPerSecond = 30
         app.difficultySetting = False
         app.titleScreen = True
-        app.MapSpeed = 20
+        app.mapSpeed = 10
     
 
 
@@ -172,7 +198,7 @@ def distance(x1, y1, x2, y2):
 
 
 #def isValid(app, playerBlock, obstacle):
-    
+    #if 
 
 def main():
     runApp()
