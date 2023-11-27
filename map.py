@@ -180,9 +180,9 @@ def onStep(app):
         if playerBlock.centerY+25 < app.floorY:
             playerBlock.centerY += 10
             playerBlock.angle += addAngle
+            app.trail = False
         if playerBlock.centerY + 25 == app.floorY:
             playerBlock.angle = 0
-            app.falling = False
             app.trail = True
 
 
