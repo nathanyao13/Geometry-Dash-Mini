@@ -15,14 +15,16 @@ playerBlock =  block('purple', 150, 225, 50, 0)
 
 #seperate into class file
 class obstacle:
-    def __init__(self, shape, centerX, centerY):
+    def __init__(self, shape, width, centerY, topY):
         self.shape = shape
-        self.centerX = centerX
+        self.width = width
         self.centerY = centerY
+        self.topY = topY
 
 
-
-
+floor = obstacle('rectangle', 150, 225, 200)
+spike = obstacle('triangle', 30, 237.5, 224.5)
+#doubleSpike = obstacle 
 
 
 def onAppStart(app):
@@ -32,17 +34,22 @@ def onAppStart(app):
     app.difficultySetting = False
     app.stepsPerSecond = 30
     app.obstacleX = 800
+    app.obstacleY = 200
     app.jumping = False
     app.falling = False
     app.blockAngle = 0
-    app.obstancles = set()
+    app.obstacles = ['floor','spike']#doubleSpike,tripleSpike}
     app.backgroundX = 0
     app.trail = True
     app.mapSpeed = 0
-    app.jumpMax = 100
+    app.jumpMax = 125
     app.countdown = 3
     app.relativeCount = 0
     app.playScreen = False
+    app.mainFloorY = 250
+    app.floorObstacle = False
+    app.currentObstacle = app.obstacles[random.randrange(0,2)]
+    app.floorY = 250
 
 
 
@@ -104,11 +111,14 @@ def drawPlayScreen(app):
     #floor
     drawRect(0,250,800, 250, fill = 'blue', border = 'black', opacity = 50, borderWidth = 5)
     #Countdown
+    #obstacle load
     if app.countdown != 0:
         drawLabel(f'{app.countdown}', 400, 200, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
     else:
-        #obstacle
-        drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+        if app.currentObstacle == 'floor':
+            drawRect(app.obstacleX,app.obstacleY,150, 50, fill = 'blue', border = 'black', opacity = 50, borderWidth = 5)
+        elif app.currentObstacle == 'spike':
+            drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
     #player block
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength, playerBlock.sideLength, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-10, playerBlock.sideLength-10, fill = 'blue', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
@@ -135,7 +145,6 @@ def onStep(app):
     #Count screen 
     if app.difficultySetting == False and app.titleScreen == False and app.playScreen == False:
         app.relativeCount += 30
-        print(app.relativeCount)
     if app.relativeCount == 900:
         app.countdown = 2
     elif app.relativeCount == 1800:
@@ -145,23 +154,34 @@ def onStep(app):
     #making sure that the map speed is different from the block jump speed so it runs smoother
     if app.countdown == 0:
         app.obstacleX -= (10 + app.mapSpeed)
-        if app.obstacleX + 50 <= 0:
+        if app.obstacleX + 150 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
+            app.currentObstacle = app.obstacles[random.randrange(0,2)]
     app.backgroundX -= 2 
     if app.backgroundX <= 0:
         app.backgroundX = 800
+    #changing app.floorY for the block to land on the floor obstacle
+    if app.currentObstacle == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX <= app.obstacleX + floor.width):
+        app.floorY = floor.topY
+    else:
+        app.floorY = app.mainFloorY
+        app.falling = True
     #jumping and falling animation
-    if app.jumping == True and playerBlock.centerY >= 125:
+    addAngle = (90/((100)/10))/2
+    if app.jumping == True and playerBlock.centerY >= app.jumpMax:
+        app.falling = False
         playerBlock.centerY -= 10
-        playerBlock.angle += 4.5
+        playerBlock.angle += addAngle
         app.trail = False
-        if playerBlock.centerY == 125:
+        if playerBlock.centerY == app.jumpMax:
             app.jumping = False
             app.falling = True
-    if app.falling == True and playerBlock.centerY <= 225:
-        playerBlock.centerY += 10
-        playerBlock.angle += 4.5
-        if playerBlock.centerY == 225:
+    if app.falling == True and playerBlock.centerY+25 <= app.floorY:
+        if playerBlock.centerY+25 < app.floorY:
+            playerBlock.centerY += 10
+            playerBlock.angle += addAngle
+        if playerBlock.centerY + 25 == app.floorY:
+            playerBlock.angle = 0
             app.falling = False
             app.trail = True
 
@@ -198,7 +218,7 @@ def distance(x1, y1, x2, y2):
 
 
 #def isValid(app, playerBlock, obstacle):
-    #if 
+    #if distance(playerBlock.centerX, playerBlock.centerY, )
 
 def main():
     runApp()
