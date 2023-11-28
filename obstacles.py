@@ -1,5 +1,6 @@
 class obstacle:
-    def __init__(self, shape, centerX, centerY):
+    def __init__(self, shape, width, centerY, topY):
         self.shape = shape
-        self.centerX = centerX
+        self.width = width
         self.centerY = centerY
+        self.topY = topY
