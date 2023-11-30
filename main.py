@@ -36,7 +36,7 @@ def onAppStart(app):
     app.floorY = 250
     app.pauseScreen = False
     app.gameover = False
-    app.obstacleXHolder = 0
+    app.obstacleXHolder = 800
 
 
 
@@ -168,9 +168,13 @@ def onStep(app):
         app.countdown = 0
     #making sure that the map speed is different from the block jump speed so it runs smoother
     if app.countdown == 0:
+        if app.currentObstacle == 'floor' and app.obstacleX <= 0:
+            app.obstacleXHolder = 150
         app.obstacleX -= (10 + app.mapSpeed)
-        if app.currentObstacle == 'floor' and app.obstacleX + 150 <= 0:
+        app.obstacleXHolder -= (10 + app.mapSpeed)
+        if app.currentObstacle == 'floor' and (app.obstacleXHolder + 150 <= 0 or app.obstacleX + 150 <= 0):
             app.obstacleX = 800 #move obstacle back to the beginning
+            app.obstacleXHolder = 800
             app.currentObstacle = app.obstacles[random.randrange(0,4)]
         elif app.currentObstacle == 'spike' and app.obstacleX + 16 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
@@ -190,7 +194,7 @@ def onStep(app):
     playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
     playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
     #changing app.floorY for the block to land on the floor obstacle
-    if app.currentObstacle == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX <= app.obstacleX + floor.width):
+    if app.currentObstacle == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX - 25 <= app.obstacleX + floor.width):
         app.floorY = floor.topY
     else:
         app.floorY = app.mainFloorY
@@ -206,6 +210,10 @@ def onStep(app):
         playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
         playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
         playerBlock.angle += addAngle
+        playerBlock.topRight = (playerBlock.topRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topRight[1] * math.cos(math.degrees(playerBlock.angle)))
+        playerBlock.topLeft = (playerBlock.topLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.cos(math.degrees(playerBlock.angle)))
+        playerBlock.bottomRight = (playerBlock.bottomRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.cos(math.degrees(playerBlock.angle)))
+        playerBlock.bottomLeft = (playerBlock.bottomLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomLeft[1] * math.cos(math.degrees(playerBlock.angle)))
         app.trail = False
         if playerBlock.centerY == app.jumpMax:
             app.jumping = False
@@ -213,15 +221,23 @@ def onStep(app):
     if app.falling == True and playerBlock.centerY+25 <= app.floorY:
         if playerBlock.centerY+25 < app.floorY:
             playerBlock.centerY += 10
-            playerBlock.angle += addAngle
-            app.trail = False
             #updating imaginary block as the block goes up and down
             playerBlock.rightValue = playerBlock.centerX + (playerBlock.sideLength/2)
             playerBlock.leftValue = playerBlock.centerX - (playerBlock.sideLength/2)
             playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
             playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
+            playerBlock.angle += addAngle
+            app.trail = False
+            playerBlock.topRight = (playerBlock.topRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topRight[1] * math.cos(math.degrees(playerBlock.angle)))
+            playerBlock.topLeft = (playerBlock.topLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.cos(math.degrees(playerBlock.angle)))
+            playerBlock.bottomRight = (playerBlock.bottomRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.cos(math.degrees(playerBlock.angle)))
+            playerBlock.bottomLeft = (playerBlock.bottomLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomLeft[1] * math.cos(math.degrees(playerBlock.angle)))
         if playerBlock.centerY + 25 == app.floorY:
             playerBlock.angle = 0
+            playerBlock.topRight = (playerBlock.rightValue, playerBlock.topValue)
+            playerBlock.topLeft = (playerBlock.leftValue, playerBlock.topValue)
+            playerBlock.bottomRight = (playerBlock.rightValue, playerBlock.bottomValue)
+            playerBlock.bottomLeft = (playerBlock.leftValue, playerBlock.bottomValue)
             app.trail = True
             app.falling = False
     #check collision
@@ -262,6 +278,15 @@ def isValid(app,playerBlock):
             return True
         elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
             return True
+        else:
+            #line intersection
+            blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
+            spikeList = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            for aLine in blockList:
+                for a in range(len(spikeList)):
+                    if a != 2:
+                        if intersect(aLine[0], aLine[1], spikeList[a], spikeList[a+1]) == True:
+                            return True
     if app.currentObstacle == 'doubleSpike': 
         if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
@@ -275,6 +300,24 @@ def isValid(app,playerBlock):
             return True
         elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
             return True
+        else:
+            #line intersection of first spike
+            blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
+            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            for aLine in blockList:
+                for a in range(len(spikeList1)):
+                    if a != 2:
+                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                            return True
+            #line intersection of first spike
+            blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
+            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
+            for aLine in blockList:
+                for a in range(len(spikeList2)):
+                    if a != 2:
+                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                            return True
+            
     if app.currentObstacle == 'tripleSpike': 
         if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
@@ -294,8 +337,32 @@ def isValid(app,playerBlock):
             return True
         elif app.obstacleX + 90 - 15 >= playerBlock.leftValue and app.obstacleX + 90 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
             return True
+        #line intersection of first spike
+            blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
+            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            for aLine in blockList:
+                for a in range(len(spikeList1)):
+                    if a != 2:
+                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                            return True
+            #line intersection of first spike
+            blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
+            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
+            for aLine in blockList:
+                for a in range(len(spikeList2)):
+                    if a != 2:
+                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                            return True
+            #line intersection of first spike
+            blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
+            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
+            for aLine in blockList:
+                for a in range(len(spikeList2)):
+                    if a != 2:
+                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                            return True
     if app.currentObstacle == 'floor':
-        if (playerBlock.centerX >= app.obstacleX and playerBlock.centerX <= app.obstacleX + floor.width) == False and rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength,app.obstacleX,app.obstacleY) == True:
+        if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength,app.obstacleX, app.obstacleY, 150, 50) == True and app.floorY != floor.topY:
             return True
         
 
@@ -306,13 +373,20 @@ def distance(x1, y1, x2, y2):
 
 
 def rectanglesOverlap(left1, top1, width1, height1,
-                      left2, top2):
-    xdistance = left2 - left1
-    heightdif = top1 - top2
-    if width1 >= xdistance and height1 >= heightdif:
-        return True
-    else:
-        return False
+                      left2, top2, width2, height2):
+    bottom1 = top1 + height1
+    bottom2 = top2 + height2
+    right1 = left1 + width1 
+    right2 = left2 + width2
+    return (bottom1 >= top2 and bottom2 >= top1 and right1  >= left2 and right2 >= left1)
+
+#intersection of a line (ccw and intersection)--> code/algorithm of line intersection from https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/ 
+def ccw(A,B,C):
+    return (C[1]-A[1])*(B[0]-A[0]) > (B[1]-A[1])*(C[0]-A[0])
+
+def intersect(A,B,C,D):
+        return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+    
 
 def main():
     runApp()
