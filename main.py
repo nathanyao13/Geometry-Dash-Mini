@@ -37,6 +37,8 @@ def onAppStart(app):
     app.pauseScreen = False
     app.gameover = False
     app.obstacleXHolder = 800
+    app.scoreCount= 0
+    app.scoreCountRelative = 0
 
 
 
@@ -140,18 +142,62 @@ def drawPlayScreen(app):
             drawCircle(i, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'purple')
             drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
             drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
+    #ScoreBoard
+    drawLabel(f'Score[{app.scoreCount}]', 400, 50, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
 #-------------------------------------------------------------------------------
 #gameover screen
 def drawGameoverScreen(app):
-    drawRect(0,0, app.width, app.height, fill = 'blue')
+    #background color
+    drawRect(0,0,800,400,fill = 'lightblue', opacity = 80)
+    #background color
+    for i in range(-800, app.width, 50):
+        drawRect(app.backgroundX + i, 0, 800, app.height, fill='lightblue', opacity=80)
+        drawRect(app.backgroundX + i, 0, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 50, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 100, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 150, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 200, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 250, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 300, 50, 50, fill='blue', opacity=10, border='white')
+        drawRect(app.backgroundX + i, 350, 50, 50, fill='blue', opacity=10, border='white')
+    #ScoreBoard
+    drawLabel(f'Final Score[{app.scoreCount}]', 400, 150, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+    drawLabel(f"Click 'm' to go back to the MENU", 400, 200, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+    
 
 
 def onKeyPress(app, key):
     #jump mechanics
     if key == 'space' and app.jumping == False and app.falling == False:
         app.jumping = True
-    if key == 'p' and app.titleScreen == False and app.difficultySetting == False:
-        app.pauseScreen = not(app.pauseScreen)
+    if key == 'm' and app.titleScreen == False and app.difficultySetting == False and app.gameover == True:
+        app.width = 800
+        app.height = 400
+        app.titleScreen = True
+        app.difficultySetting = False
+        app.stepsPerSecond = 30
+        app.obstacleX = 800
+        app.obstacleY = 200
+        app.jumping = False
+        app.falling = False
+        app.blockAngle = 0
+        app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape] 
+        app.backgroundX = 0
+        app.trail = True
+        app.mapSpeed = 0
+        app.jumpMax = 125
+        app.countdown = 3
+        app.relativeCount = 0
+        app.playScreen = False
+        app.mainFloorY = 250
+        app.floorObstacle = False
+        app.currentObstacle = app.obstacles[random.randrange(0,2)]
+        app.floorY = 250
+        app.pauseScreen = False
+        app.gameover = False
+        app.obstacleXHolder = 800
+        app.scoreCount= 0
+        app.scoreCountRelative = 0
 
 
 
@@ -168,6 +214,10 @@ def onStep(app):
         app.countdown = 0
     #making sure that the map speed is different from the block jump speed so it runs smoother
     if app.countdown == 0:
+        app.scoreCountRelative += 0.033333333333333333
+        if app.scoreCountRelative >= 1 and app.gameover == False:
+            app.scoreCount += 1
+            app.scoreCountRelative = 0
         if app.currentObstacle == 'floor' and app.obstacleX <= 0:
             app.obstacleXHolder = 150
         app.obstacleX -= (10 + app.mapSpeed)
@@ -268,7 +318,7 @@ def onMousePress(app, mouseX, mouseY):
         app.titleScreen = True
         app.mapSpeed = 10
     
-
+#collision between rectangle and triangle algorithm: https://seblee.me/2009/05/super-fast-trianglerectangle-intersection-test/#:~:text=So%20how%20do%20you%20accurately,yes%20then%20intersection%20is%20true.
 
 def isValid(app,playerBlock):
     if app.currentObstacle == 'spike':
@@ -337,7 +387,8 @@ def isValid(app,playerBlock):
             return True
         elif app.obstacleX + 90 - 15 >= playerBlock.leftValue and app.obstacleX + 90 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
             return True
-        #line intersection of first spike
+        else:
+            #line intersection of first spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
             spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
             for aLine in blockList:
@@ -345,7 +396,7 @@ def isValid(app,playerBlock):
                     if a != 2:
                         if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
                             return True
-            #line intersection of first spike
+            #line intersection of second spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
             spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
             for aLine in blockList:
@@ -353,9 +404,9 @@ def isValid(app,playerBlock):
                     if a != 2:
                         if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
                             return True
-            #line intersection of first spike
+            #line intersection of second spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
+            spikeList2 = [(app.obstacleX+90, 224.5), (app.obstacleX+90+15, 250.49), (app.obstacleX+90-15, 250.49)]
             for aLine in blockList:
                 for a in range(len(spikeList2)):
                     if a != 2:
