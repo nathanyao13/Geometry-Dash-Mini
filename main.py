@@ -330,11 +330,11 @@ def isValid(app,playerBlock):
         else:
             #line intersection
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
             for aLine in blockList:
-                for a in range(len(spikeList)):
+                for a in range(len(spikeList1)):
                     if a != 2:
-                        if intersect(aLine[0], aLine[1], spikeList[a], spikeList[a+1]) == True:
+                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
                             return True
     if app.currentObstacle == 'doubleSpike': 
         if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
@@ -364,7 +364,7 @@ def isValid(app,playerBlock):
             for aLine in blockList:
                 for a in range(len(spikeList2)):
                     if a != 2:
-                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                        if intersect(aLine[0], aLine[1], spikeList2[a], spikeList2[a+1]) == True:
                             return True
             
     if app.currentObstacle == 'tripleSpike': 
@@ -401,15 +401,15 @@ def isValid(app,playerBlock):
             for aLine in blockList:
                 for a in range(len(spikeList2)):
                     if a != 2:
-                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                        if intersect(aLine[0], aLine[1], spikeList2[a], spikeList2[a+1]) == True:
                             return True
-            #line intersection of second spike
+            #line intersection of third spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList2 = [(app.obstacleX+90, 224.5), (app.obstacleX+90+15, 250.49), (app.obstacleX+90-15, 250.49)]
+            spikeList3 = [(app.obstacleX+90, 224.5), (app.obstacleX+90+15, 250.49), (app.obstacleX+90-15, 250.49)]
             for aLine in blockList:
-                for a in range(len(spikeList2)):
+                for a in range(len(spikeList3)):
                     if a != 2:
-                        if intersect(aLine[0], aLine[1], spikeList1[a], spikeList1[a+1]) == True:
+                        if intersect(aLine[0], aLine[1], spikeList3[a], spikeList3[a+1]) == True:
                             return True
     if app.currentObstacle == 'floor':
         if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength,app.obstacleX, app.obstacleY, 150, 50) == True and app.floorY != floor.topY:
