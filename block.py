@@ -11,6 +11,10 @@ class block:
         self.leftValue = self.centerX - (self.sideLength/2)
         self.topValue = self.centerY - (self.sideLength/2)
         self.bottomValue = self.centerY + (self.sideLength/2)
+        self.topRight = (self.rightValue, self.topValue)
+        self.topLeft = (self.leftValue, self.topValue)
+        self.bottomRight = (self.rightValue, self.bottomValue)
+        self.bottomLeft = (self.leftValue, self.bottomValue)
 
 
 
