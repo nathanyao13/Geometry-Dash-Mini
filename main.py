@@ -36,6 +36,7 @@ def onAppStart(app):
     app.floorY = 250
     app.pauseScreen = False
     app.gameover = False
+    app.obstacleXHolder = 0
 
 
 
@@ -168,7 +169,16 @@ def onStep(app):
     #making sure that the map speed is different from the block jump speed so it runs smoother
     if app.countdown == 0:
         app.obstacleX -= (10 + app.mapSpeed)
-        if app.obstacleX + 150 <= 0:
+        if app.currentObstacle == 'floor' and app.obstacleX + 150 <= 0:
+            app.obstacleX = 800 #move obstacle back to the beginning
+            app.currentObstacle = app.obstacles[random.randrange(0,4)]
+        elif app.currentObstacle == 'spike' and app.obstacleX + 16 <= 0:
+            app.obstacleX = 800 #move obstacle back to the beginning
+            app.currentObstacle = app.obstacles[random.randrange(0,4)]
+        elif app.currentObstacle == 'doubleSpike' and app.obstacleX + 46 <= 0:
+            app.obstacleX = 800 #move obstacle back to the beginning
+            app.currentObstacle = app.obstacles[random.randrange(0,4)]
+        elif app.currentObstacle == 'tripleSpike' and app.obstacleX + 75 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
             app.currentObstacle = app.obstacles[random.randrange(0,4)]
     app.backgroundX -= 2 
@@ -215,14 +225,8 @@ def onStep(app):
             app.trail = True
             app.falling = False
     #check collision
-    if app.currentObstacle == 'spike':
-        if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
-            app.gameover = True
-            print(True)
-        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
-            app.gameover = True
-        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
-            app.gameover = True
+    if isValid(app,playerBlock) == True:
+        app.gameover = True
 
 
 
@@ -250,14 +254,65 @@ def onMousePress(app, mouseX, mouseY):
     
 
 
+def isValid(app,playerBlock):
+    if app.currentObstacle == 'spike':
+        if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+    if app.currentObstacle == 'doubleSpike': 
+        if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 45 >= playerBlock.leftValue and app.obstacleX + 45 <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            return True 
+        elif app.obstacleX + 45 + 15 >= playerBlock.leftValue and app.obstacleX + 45 + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+    if app.currentObstacle == 'tripleSpike': 
+        if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 45 >= playerBlock.leftValue and app.obstacleX + 45 <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 45 + 15 >= playerBlock.leftValue and app.obstacleX + 45 + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 90 >= playerBlock.leftValue and app.obstacleX + 90 <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 90 + 15 >= playerBlock.leftValue and app.obstacleX + 90 + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+        elif app.obstacleX + 90 - 15 >= playerBlock.leftValue and app.obstacleX + 90 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            return True
+    if app.currentObstacle == 'floor':
+        if (playerBlock.centerX >= app.obstacleX and playerBlock.centerX <= app.obstacleX + floor.width) == False and rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength,app.obstacleX,app.obstacleY) == True:
+            return True
+        
+
 
 def distance(x1, y1, x2, y2):
     distance = math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2) )
     return distance
 
 
-# def isValid(app, playerBlock, obstacle):
-#     if obstacle.
+def rectanglesOverlap(left1, top1, width1, height1,
+                      left2, top2):
+    xdistance = left2 - left1
+    heightdif = top1 - top2
+    if width1 >= xdistance and height1 >= heightdif:
+        return True
+    else:
+        return False
 
 def main():
     runApp()
