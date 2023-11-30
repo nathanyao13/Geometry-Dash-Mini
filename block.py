@@ -7,6 +7,10 @@ class block:
         self.sideLength = sideLength
         self.angle = angle
         self.upVelocity = upVelocity
+        self.rightValue = self.centerX + (self.sideLength/2)
+        self.leftValue = self.centerX - (self.sideLength/2)
+        self.topValue = self.centerY - (self.sideLength/2)
+        self.bottomValue = self.centerY + (self.sideLength/2)
 
 
 

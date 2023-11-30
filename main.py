@@ -34,6 +34,8 @@ def onAppStart(app):
     app.floorObstacle = False
     app.currentObstacle = app.obstacles[random.randrange(0,2)]
     app.floorY = 250
+    app.pauseScreen = False
+    app.gameover = False
 
 
 
@@ -45,9 +47,14 @@ def redrawAll(app):
     elif app.difficultySetting == True and app.titleScreen == False:
         drawDifficultyScreen(app)
     #play screen 
-    elif app.titleScreen == False and app.difficultySetting == False:
+    elif app.titleScreen == False and app.difficultySetting == False and app.gameover == False:
         drawPlayScreen(app)
-
+    #pause screen 
+    #elif app.titleScreen == False and app.difficultySetting == False and app.pauseScreen == True:
+        #drawPauseScreen(app)
+    #gameover screen
+    elif app.titleScreen == False and app.difficultySetting == False and app.gameover == True:
+        drawGameoverScreen(app)
 #-------------------------------------------------------------------------------
 def drawTitleScreen(app):
     #background color
@@ -133,13 +140,17 @@ def drawPlayScreen(app):
             drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
             drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
 #-------------------------------------------------------------------------------
+#gameover screen
+def drawGameoverScreen(app):
+    drawRect(0,0, app.width, app.height, fill = 'blue')
 
 
 def onKeyPress(app, key):
     #jump mechanics
     if key == 'space' and app.jumping == False and app.falling == False:
         app.jumping = True
-    
+    if key == 'p' and app.titleScreen == False and app.difficultySetting == False:
+        app.pauseScreen = not(app.pauseScreen)
 
 
 
@@ -163,6 +174,11 @@ def onStep(app):
     app.backgroundX -= 2 
     if app.backgroundX <= 0:
         app.backgroundX = 800
+    #updating imaginary block as the block goes up and down
+    playerBlock.rightValue = playerBlock.centerX + (playerBlock.sideLength/2)
+    playerBlock.leftValue = playerBlock.centerX - (playerBlock.sideLength/2)
+    playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
+    playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
     #changing app.floorY for the block to land on the floor obstacle
     if app.currentObstacle == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX <= app.obstacleX + floor.width):
         app.floorY = floor.topY
@@ -174,6 +190,11 @@ def onStep(app):
     if app.jumping == True and playerBlock.centerY >= app.jumpMax:
         app.falling = False
         playerBlock.centerY -= 10
+        #updating imaginary block as the block goes up and down
+        playerBlock.rightValue = playerBlock.centerX + (playerBlock.sideLength/2)
+        playerBlock.leftValue = playerBlock.centerX - (playerBlock.sideLength/2)
+        playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
+        playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
         playerBlock.angle += addAngle
         app.trail = False
         if playerBlock.centerY == app.jumpMax:
@@ -184,11 +205,24 @@ def onStep(app):
             playerBlock.centerY += 10
             playerBlock.angle += addAngle
             app.trail = False
+            #updating imaginary block as the block goes up and down
+            playerBlock.rightValue = playerBlock.centerX + (playerBlock.sideLength/2)
+            playerBlock.leftValue = playerBlock.centerX - (playerBlock.sideLength/2)
+            playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
+            playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
         if playerBlock.centerY + 25 == app.floorY:
             playerBlock.angle = 0
             app.trail = True
             app.falling = False
-    
+    #check collision
+    if app.currentObstacle == 'spike':
+        if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
+            app.gameover = True
+            print(True)
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            app.gameover = True
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+            app.gameover = True
 
 
 
@@ -222,8 +256,8 @@ def distance(x1, y1, x2, y2):
     return distance
 
 
-#def isValid(app, playerBlock, obstacle):
-    #if distance(playerBlock.centerX, playerBlock.centerY, )
+# def isValid(app, playerBlock, obstacle):
+#     if obstacle.
 
 def main():
     runApp()
