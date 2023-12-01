@@ -5,10 +5,12 @@ from block import block
 from obstacles import obstacle
 
 
-floor = obstacle('floor', 150, 225, 200)
-spike = obstacle('spike', 30, 237.5, 224.5)
-doubleSpike = obstacle ('doubleSpike', 30, 237.5, 224.5)
-tripleSpike = obstacle ('tripleSpike', 30, 237.5, 224.5)
+floor = obstacle('floor', 150, 225, 800, 200)
+spike = obstacle('spike', 30, 237.5, 800, 224.5)
+doubleSpike = obstacle ('doubleSpike', 30, 237.5, 800, 224.5)
+tripleSpike = obstacle ('tripleSpike', 30, 237.5, 800, 224.5)
+invincible = obstacle('invincible', 30, 800,random.randrange(150,200), 150)
+topSpike = obstacle('topSpike',30, 800, random.randrange(100, 150), 150)
 playerBlock =  block('purple', 150, 225, 50, 0, 15)
 
 def onAppStart(app):
@@ -22,17 +24,17 @@ def onAppStart(app):
     app.jumping = False
     app.falling = False
     app.blockAngle = 0
-    app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape] #will add spaceship part later
+    app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape, topSpike.shape, invincible.shape] #will add spaceship part later
     app.backgroundX = 0
     app.trail = True
-    app.mapSpeed = 0
+    app.mapSpeed = -5
     app.jumpMax = 125
     app.countdown = 3
     app.relativeCount = 0
     app.playScreen = False
     app.mainFloorY = 250
     app.floorObstacle = False
-    app.currentObstacle = app.obstacles[random.randrange(0,2)]
+    app.currentObstacle1 = app.obstacles[1]
     app.floorY = 250
     app.pauseScreen = False
     app.gameover = False
@@ -42,6 +44,16 @@ def onAppStart(app):
     app.time = 0
     app.startVelocity = 10
     app.CountRelative = 0
+    app.doubleJump = False
+    app.invincible = False
+    app.delete = False
+    app.invincibleCount = 0
+    app.slow = True
+    app.moderate = False
+    app.fast = False
+    app.slowHighScore = 0
+    app.moderateHighScore = 0
+    app.fastHighScore = 0
 
 
 
@@ -105,6 +117,10 @@ def drawDifficultyScreen(app):
     drawLabel('Slow', 150, 200, fill = 'lightgreen', border = 'black', font = 'orbitron', size = 45)
     drawLabel('Moderate', 400, 200, fill = 'lightgreen', border = 'black', font = 'orbitron', size = 45)
     drawLabel('Fast', 650, 200, fill = 'lightgreen', border = 'black', font = 'orbitron', size = 45)
+    #highscores
+    drawLabel(f'Score: {app.slowHighScore}', 150, 125, fill = 'purple', font = 'orbitron', size = 30)
+    drawLabel(f'Score: {app.moderateHighScore}', 400, 125, fill = 'purple', font = 'orbitron', size = 30)
+    drawLabel(f'Score: {app.fastHighScore}', 650, 125, fill = 'purple', font = 'orbitron', size = 30)
 #-------------------------------------------------------------------------------
 
 def drawPlayScreen(app):
@@ -123,17 +139,22 @@ def drawPlayScreen(app):
     if app.countdown != 0:
         drawLabel(f'{app.countdown}', 400, 200, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
     else:
-        if app.currentObstacle == 'floor':
+        if app.currentObstacle1 == 'floor':
             drawRect(app.obstacleX,app.obstacleY,150, 50, fill = 'blue', border = 'black', opacity = 50, borderWidth = 5)
-        elif app.currentObstacle == 'spike':
+        elif app.currentObstacle1 == 'spike':
             drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
-        elif app.currentObstacle == 'doubleSpike':
+        elif app.currentObstacle1 == 'doubleSpike':
             drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
             drawRegularPolygon(app.obstacleX+45, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
-        elif app.currentObstacle == 'tripleSpike':
+        elif app.currentObstacle1 == 'tripleSpike':
             drawRegularPolygon(app.obstacleX, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
             drawRegularPolygon(app.obstacleX+45, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
             drawRegularPolygon(app.obstacleX+90, 237.5, 30, 3, fill='red', border = 'black', borderWidth = 2) 
+        elif app.currentObstacle1 == 'invincible' and app.delete == False:
+            drawCircle(app.obstacleX, invincible.centerY, invincible.width, fill = 'purple', border = 'black', borderWidth = 2)
+        elif app.currentObstacle1 == 'topSpike':
+            drawRect(app.obstacleX, topSpike.centerY-25, 100,25, fill = 'red', border = 'black', borderWidth = 2, align = 'center')
+            drawRegularPolygon(app.obstacleX, topSpike.centerY, 30, 3, fill='red', border = 'black', borderWidth = 2, rotateAngle = 180) 
     #player block
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength, playerBlock.sideLength, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-10, playerBlock.sideLength-10, fill = 'blue', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
@@ -145,8 +166,13 @@ def drawPlayScreen(app):
             drawCircle(i, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'purple')
             drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
             drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
+    #if invincible
+    if app.invincible == True:
+        drawCircle(playerBlock.centerX,playerBlock.centerY, 60, fill = None, border = 'cyan', borderWidth = 2)
+        drawLabel(f'Invincibility : [{app.invincibleCount}]', 400, 100, size=25, font='orbitron', bold=True, fill='cyan', border= 'black', borderWidth=2,opacity=100)
+        
     #ScoreBoard
-    drawLabel(f'Score[{app.scoreCount}]', 400, 50, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+    drawLabel(f'Score: [{app.scoreCount}]', 400, 50, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
 #-------------------------------------------------------------------------------
 #gameover screen
 def drawGameoverScreen(app):
@@ -164,7 +190,7 @@ def drawGameoverScreen(app):
         drawRect(app.backgroundX + i, 300, 50, 50, fill='blue', opacity=10, border='white')
         drawRect(app.backgroundX + i, 350, 50, 50, fill='blue', opacity=10, border='white')
     #ScoreBoard
-    drawLabel(f'Final Score[{app.scoreCount}]', 400, 150, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
+    drawLabel(f'Final Score: [{app.scoreCount}]', 400, 150, size=50, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
     drawLabel(f"Click 'm' to go back to the MENU", 400, 200, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
     
 
@@ -184,28 +210,46 @@ def onKeyPress(app, key):
         app.jumping = False
         app.falling = False
         app.blockAngle = 0
-        app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape] 
+        app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape, topSpike.shape, invincible.shape] #will add spaceship part later
         app.backgroundX = 0
         app.trail = True
-        app.mapSpeed = 0
+        app.mapSpeed = -5
         app.jumpMax = 125
         app.countdown = 3
         app.relativeCount = 0
         app.playScreen = False
         app.mainFloorY = 250
         app.floorObstacle = False
-        app.currentObstacle = app.obstacles[random.randrange(0,2)]
+        app.currentObstacle1 = app.obstacles[1]
         app.floorY = 250
         app.pauseScreen = False
         app.gameover = False
         app.obstacleXHolder = 800
         app.scoreCount= 0
         app.scoreCountRelative = 0
+        app.time = 0
+        app.startVelocity = 10
+        app.CountRelative = 0
+        app.doubleJump = False
+        app.invincible = False
+        app.delete = False
+        app.invincibleCount = 0
+        app.slow = True
+        app.moderate = False
+        app.fast = False
+
 
 
 
 
 def onStep(app):
+    if app.gameover == True: 
+        if app.slow == True and app.scoreCount >= app.slowHighScore:
+            app.slowHighScore = app.scoreCount
+        elif app.moderate == True and app.scoreCount >= app.moderateHighScore:
+            app.moderateHighScore = app.scoreCount
+        elif app.fast == True and app.scoreCount >= app.fastHighScore:
+            app.fastHighScore = app.scoreCount
     #Count screen 
     if app.difficultySetting == False and app.titleScreen == False and app.playScreen == False:
         app.relativeCount += 30
@@ -220,24 +264,91 @@ def onStep(app):
         app.scoreCountRelative += 0.033333333333333333
         if app.scoreCountRelative >= 1 and app.gameover == False:
             app.scoreCount += 1
+            app.mapSpeed += 0.5
             app.scoreCountRelative = 0
-        if app.currentObstacle == 'floor' and app.obstacleX <= 0:
+            if app.scoreCount % 15 == 0 and app.invincible == True:
+                app.invincible = False
+                app.delete = False
+            else: 
+                app.invincibleCount = abs(app.scoreCount % 15 - 15)
+        if app.currentObstacle1 == 'floor' and app.obstacleX <= 0:
             app.obstacleXHolder = 150
         app.obstacleX -= (10 + app.mapSpeed)
         app.obstacleXHolder -= (10 + app.mapSpeed) 
-        if app.currentObstacle == 'floor' and (app.obstacleXHolder + 150 <= 0 or app.obstacleX + 150 <= 0):
+        if app.currentObstacle1 == 'floor' and (app.obstacleXHolder + 150 <= 0 or app.obstacleX + 150 <= 0):
             app.obstacleX = 800 #move obstacle back to the beginning
             app.obstacleXHolder = 800
-            app.currentObstacle = app.obstacles[random.randrange(0,4)]
-        elif app.currentObstacle == 'spike' and app.obstacleX + 16 <= 0:
+            if app.invincible == True:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,5)]
+            else:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,6)]
+        elif app.currentObstacle1 == 'spike' and app.obstacleX + 150 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
-            app.currentObstacle = app.obstacles[random.randrange(0,4)]
-        elif app.currentObstacle == 'doubleSpike' and app.obstacleX + 46 <= 0:
+            if app.invincible == True:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,5)]
+            else:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,6)]
+        elif app.currentObstacle1 == 'doubleSpike' and app.obstacleX + 100 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
-            app.currentObstacle = app.obstacles[random.randrange(0,4)]
-        elif app.currentObstacle == 'tripleSpike' and app.obstacleX + 75 <= 0:
+            if app.invincible == True:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,5)]
+            else:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,6)]
+        elif app.currentObstacle1 == 'tripleSpike' and app.obstacleX + 100 <= 0:
             app.obstacleX = 800 #move obstacle back to the beginning
-            app.currentObstacle = app.obstacles[random.randrange(0,4)]
+            if app.invincible == True:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,5)]
+            else:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,6)]
+        elif app.currentObstacle1 == 'invincible' and app.obstacleX + 100 <= 0:
+            app.obstacleX = 800 #move obstacle back to the beginning
+            if app.invincible == True:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,5)]
+            else:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,6)]
+        elif app.currentObstacle1 == 'topSpike' and app.obstacleX + 100 <= 0:
+            app.obstacleX = 800 #move obstacle back to the beginning
+            if app.invincible == True:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,5)]
+            else:
+                if app.mapSpeed < 2:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
+                else:
+                    app.currentObstacle1 = app.obstacles[random.randrange(0,6)]
+    
     app.backgroundX -= 2 
     if app.backgroundX <= 0:
         app.backgroundX = 800
@@ -247,7 +358,7 @@ def onStep(app):
     playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
     playerBlock.bottomValue = playerBlock.centerY + (playerBlock.sideLength/2)
     #changing app.floorY for the block to land on the floor obstacle
-    if app.currentObstacle == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX - 25 <= app.obstacleX + floor.width):
+    if app.currentObstacle1 == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX - 25 <= app.obstacleX + floor.width):
         app.floorY = floor.topY
     else:
         app.floorY = app.mainFloorY
@@ -304,7 +415,7 @@ def onStep(app):
             app.trail = True
             app.falling = False
     #check collision
-    if isValid(app,playerBlock) == True:
+    if app.invincible == False and isValid(app,playerBlock) == True:
         app.gameover = True
 
 
@@ -319,14 +430,23 @@ def onMousePress(app, mouseX, mouseY):
         app.difficultySetting = True
     #difficulty options
     if app.difficultySetting == True and (mouseX >= 50 and mouseX <= 250) and (mouseY >= 150 and mouseY <= 250):
+        app.slow = True
+        app.moderate = False
+        app.fast = False
         app.mapSpeed = -5
         app.difficultySetting = False
         app.titleScreen = True
     elif app.difficultySetting == True and (mouseX >= 300 and mouseX <= 500) and (mouseY >= 150 and mouseY <= 250):
+        app.moderate = True
+        app.slow = False
+        app.fast = False
         app.difficultySetting = False
         app.titleScreen = True
         app.mapSpeed = 5
     elif app.difficultySetting == True and (mouseX >= 550 and mouseX <= 750) and (mouseY >= 150 and mouseY <= 250):
+        app.fast = True
+        app.slow = False
+        app.moderate = False
         app.difficultySetting = False
         app.titleScreen = True
         app.mapSpeed = 10
@@ -334,114 +454,133 @@ def onMousePress(app, mouseX, mouseY):
 #collision between rectangle and triangle algorithm: https://seblee.me/2009/05/super-fast-trianglerectangle-intersection-test/#:~:text=So%20how%20do%20you%20accurately,yes%20then%20intersection%20is%20true.
 
 def isValid(app,playerBlock):
-    if app.currentObstacle == 'spike':
+    if app.currentObstacle1 == 'spike':
         if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
-        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
         else:
             #line intersection
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 249), (app.obstacleX-15, 249)]
             for aLine in blockList:
-                if intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX+15, 250.49)) == True:
+                if intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX+15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+15, 249), (app.obstacleX-15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX-15, 249)) == True:
                     return True
-    if app.currentObstacle == 'doubleSpike': 
+            if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX - 15, 224.5, 30, 25.5):
+                return True
+    if app.currentObstacle1 == 'doubleSpike': 
         if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
-        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
         elif app.obstacleX + 45 >= playerBlock.leftValue and app.obstacleX + 45 <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True 
-        elif app.obstacleX + 45 + 15 >= playerBlock.leftValue and app.obstacleX + 45 + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 45 + 15 >= playerBlock.leftValue and app.obstacleX + 45 + 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
         else:
             #line intersection of first spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 249), (app.obstacleX-15, 249)]
             for aLine in blockList:
-                if intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX+15, 250.49)) == True:
+                if intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX+15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+15, 249), (app.obstacleX-15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX-15, 249)) == True:
                     return True
             #line intersection of first spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
+            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 249), (app.obstacleX+45-15, 249)]
             for aLine in blockList:
-                if intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49)) == True:
+                if intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+45+15, 249), (app.obstacleX+45-15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 249)) == True:
                     return True
+            if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX - 15, 224.5, 30, 25.5):
+                return True
+            if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX + 45 - 15, 224.5, 30, 25.5):
+                return True
             
-    if app.currentObstacle == 'tripleSpike': 
+    if app.currentObstacle1 == 'tripleSpike': 
         if app.obstacleX >= playerBlock.leftValue and app.obstacleX <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 15 >= playerBlock.leftValue and app.obstacleX + 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
-        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX - 15 >= playerBlock.leftValue and app.obstacleX - 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
         elif app.obstacleX + 45 >= playerBlock.leftValue and app.obstacleX + 45 <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 45 + 15 >= playerBlock.leftValue and app.obstacleX + 45 + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 45 + 15 >= playerBlock.leftValue and app.obstacleX + 45 + 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 45 - 15 >= playerBlock.leftValue and app.obstacleX + 45 - 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
         elif app.obstacleX + 90 >= playerBlock.leftValue and app.obstacleX + 90 <= playerBlock.rightValue and 224.5 <= playerBlock.bottomValue and 224.5 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 90 + 15 >= playerBlock.leftValue and app.obstacleX + 90 + 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 90 + 15 >= playerBlock.leftValue and app.obstacleX + 90 + 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
-        elif app.obstacleX + 90 - 15 >= playerBlock.leftValue and app.obstacleX + 90 - 15 <= playerBlock.rightValue and 250.49 <= playerBlock.bottomValue and 250.49 >= playerBlock.topValue:
+        elif app.obstacleX + 90 - 15 >= playerBlock.leftValue and app.obstacleX + 90 - 15 <= playerBlock.rightValue and 249 <= playerBlock.bottomValue and 249 >= playerBlock.topValue:
             return True
         else:
             #line intersection of first spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)]
+            spikeList1 = [(app.obstacleX, 224.5), (app.obstacleX+15, 249), (app.obstacleX-15, 249)]
             for aLine in blockList:
-                if intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX+15, 250.49)) == True:
+                if intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX+15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+15, 250.49), (app.obstacleX-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+15, 249), (app.obstacleX-15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX, 224.5), (app.obstacleX-15, 249)) == True:
                     return True
             #line intersection of first spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)]
+            spikeList2 = [(app.obstacleX+45, 224.5), (app.obstacleX+45+15, 249), (app.obstacleX+45-15, 249)]
             for aLine in blockList:
-                if intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49)) == True:
+                if intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+45+15, 250.49), (app.obstacleX+45-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+45+15, 249), (app.obstacleX+45-15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+45, 224.5), (app.obstacleX+45+15, 249)) == True:
                     return True
             #line intersection of third spike
             blockList = [((playerBlock.topRight),(playerBlock.topLeft)), ((playerBlock.bottomRight),(playerBlock.bottomLeft)), ((playerBlock.topRight),(playerBlock.bottomRight)), ((playerBlock.topLeft),(playerBlock.bottomLeft))]
-            spikeList3 = [(app.obstacleX+90, 224.5), (app.obstacleX+90+15, 250.49), (app.obstacleX+90-15, 250.49)]
+            spikeList3 = [(app.obstacleX+90, 224.5), (app.obstacleX+90+15, 249), (app.obstacleX+90-15, 249)]
             for aLine in blockList:
-                if intersect(aLine[0], aLine[1], (app.obstacleX+90, 224.5), (app.obstacleX+90+15, 250.49)) == True:
+                if intersect(aLine[0], aLine[1], (app.obstacleX+90, 224.5), (app.obstacleX+90+15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+90+15, 250.49), (app.obstacleX+90-15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+90+15, 249), (app.obstacleX+90-15, 249)) == True:
                     return True
-                elif intersect(aLine[0], aLine[1], (app.obstacleX+90, 224.5), (app.obstacleX+90+15, 250.49)) == True:
+                elif intersect(aLine[0], aLine[1], (app.obstacleX+90, 224.5), (app.obstacleX+90+15, 249)) == True:
                     return True
-    if app.currentObstacle == 'floor':
+            if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX - 15, 224.5, 30, 25.5):
+                return True
+            if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX + 45 - 15, 224.5, 30, 25.5):
+                return True
+            if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX + 90 - 15, 224.5, 30, 25.5):
+                return True
+    if app.currentObstacle1 == 'floor':
         if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength,app.obstacleX, app.obstacleY, 150, 50) == True and app.floorY != floor.topY:
             return True
-
-
+    if app.currentObstacle1 == 'invincible':
+        blockList = [playerBlock.topRight,playerBlock.topLeft, playerBlock.bottomRight, playerBlock.bottomLeft]
+        for aLine in blockList:
+            if distance(playerBlock.leftValue + 25, playerBlock.centerY, app.obstacleX, invincible.centerY) <= invincible.width:
+                app.delete = True
+                app.invincible = True
+    if app.currentObstacle1 == 'topSpike':
+        if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX-15, topSpike.centerY - 12, 30, 25.5):
+            return True
 
 def distance(x1, y1, x2, y2):
     distance = math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2) )
