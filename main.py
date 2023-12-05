@@ -69,6 +69,9 @@ def onAppStart(app):
     app.jetpackFalling = False
     app.powerupX = random.randrange(1600,2000)
     app.verticalTrail = False
+    app.collision = False
+    app.deleteBlock = False
+    app.collisionTimer = 5
 
 
 
@@ -178,17 +181,18 @@ def drawPlayScreen(app):
             drawCircle(app.powerupX, invincible.centerY, invincible.width-10, fill = None, border = 'cyan', borderWidth = 3)
 
     #player block
-    drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength, playerBlock.sideLength, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
-    drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-10, playerBlock.sideLength-10, fill = 'blue', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
-    drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-20, playerBlock.sideLength-20, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
-    drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-30, playerBlock.sideLength-30, fill = 'black', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
+    if app.deleteBlock == False:
+        drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength, playerBlock.sideLength, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
+        drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-10, playerBlock.sideLength-10, fill = 'blue', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
+        drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-20, playerBlock.sideLength-20, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
+        drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-30, playerBlock.sideLength-30, fill = 'black', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     #player block trail
-    if app.horizontalTrail == True:
+    if app.horizontalTrail == True and app.deleteBlock == False:
         for i in range(playerBlock.centerX - 75, playerBlock.centerX-25, 5):
             drawCircle(i, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'purple')
             drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
             drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
-    if app.verticalTrail == True: 
+    if app.verticalTrail == True and app.deleteBlock == False: 
         for i in range(int(playerBlock.centerY + 25), int(playerBlock.centerY + 75), 5):
             drawCircle(playerBlock.centerX + random.randrange(-5,5), i, 2, fill = 'lightgreen')
             drawCircle(playerBlock.centerX + randrange(-5,5), i+5, 2, fill = 'white')
@@ -199,6 +203,14 @@ def drawPlayScreen(app):
         drawLabel(f'Invincibility : [{app.invincibleCount}]', 400, 100, size=25, font='orbitron', bold=True, fill='cyan', border= 'black', borderWidth=2,opacity=100)
     if app.jetpack == True:
         drawLabel(f'Jetpack : [{app.jetpackCount}]', 400, 150, size=25, font='orbitron', bold=True, fill='cyan', border= 'black', borderWidth=2,opacity=100)
+    
+    #collision animation
+    if app.collision == True:
+        for time in range(app.collisionTimer):
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'lightgreen')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'white')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'lightgreen')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'white')
         
     #ScoreBoard
     drawLabel(f'Score: [{app.scoreCount}]', 400, 50, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
@@ -266,15 +278,15 @@ def onKeyPress(app, key):
         app.deleteInvincible = False
         app.invincibleCount = 0
         app.jetpackCount = 0
-        app.slow = True
-        app.moderate = False
-        app.fast = False
         app.jetpack = False
         app.deleteJetpack = False
         app.jetpackJumping = False
         app.jetpackFalling = False
         app.powerupX = random.randrange(1600,2000)
         app.verticalTrail = False
+        app.collision = False
+        app.deleteBlock = False
+        app.collisionTimer = 0
 
 def onKeyHold(app,keys):
     if app.jetpack == True:
@@ -319,11 +331,11 @@ def onStep(app):
             app.scoreCount += 1
             app.mapSpeed += 0.5
             app.scoreCountRelative = 0
-            if app.scoreCount % 15 == 0 and app.invincible == True:
+            if app.scoreCount % 10 == 0 and app.invincible == True:
                 app.invincible = False
                 app.deleteInvincible = False
             else: 
-                app.invincibleCount = abs(app.scoreCount % 15 - 15)
+                app.invincibleCount = abs(app.scoreCount % 10 - 10)
             if app.scoreCount % 15 == 0 and app.jetpack == True:
                 app.jetpack = False
                 app.deleteJetpack = False
@@ -496,7 +508,16 @@ def onStep(app):
 
     #check collision
     if app.invincible == False and isValidObstacle(app,playerBlock) == True:
-        app.gameover = True
+        app.collision = True
+        app.deleteBlock = True
+    if app.collision == True:
+        if app.collisionTimer <= 50:
+            app.collisionTimer += 2
+        else:
+            app.collision == False
+            app.gameover = True
+            
+        
     isValidPowerup(app, playerBlock)
 
 
@@ -671,6 +692,10 @@ def isValidPowerup(app, playerBlock):
             app.deleteJetpack = True
             app.jetpack = True
 
+
+
+
+#extra side functions used in collisions
 def distance(x1, y1, x2, y2):
     distance = math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2) )
     return distance
