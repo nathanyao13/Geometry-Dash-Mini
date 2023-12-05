@@ -12,8 +12,8 @@ tripleSpike = obstacle ('tripleSpike', 30, 237.5, 800, 224.5)
 topSpike = obstacle('topSpike',30, 800, random.randrange(100, 150), 150)
 
 #features and power ups
-invincible = obstacle('invincible', 30, 800,random.randrange(150,200), 150)
-jetpack = obstacle('jetpack', 30, 800, random.randrange(150,200), 150)
+invincible = obstacle('invincible', 30, 800,random.randrange(175,200), 150)
+jetpack = obstacle('jetpack', 30, 800, random.randrange(175,200), 150)
 
 #player Block
 playerBlock =  block('purple', 150, 225, 50, 0, 15)
@@ -34,7 +34,7 @@ def onAppStart(app):
     app.powerups = [jetpack.shape,invincible.shape]
     app.currentPowerup = app.powerups[random.randrange(0,2)]
     app.backgroundX = 0
-    app.trail = True
+    app.horizontalTrail = True
     app.mapSpeed = -5
     app.jumpMax = 125
     app.countdown = 3
@@ -68,6 +68,7 @@ def onAppStart(app):
     app.jetpackJumping = False
     app.jetpackFalling = False
     app.powerupX = random.randrange(1600,2000)
+    app.verticalTrail = False
 
 
 
@@ -182,11 +183,16 @@ def drawPlayScreen(app):
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-20, playerBlock.sideLength-20, fill = 'purple', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     drawRect(playerBlock.centerX, playerBlock.centerY, playerBlock.sideLength-30, playerBlock.sideLength-30, fill = 'black', border = 'white', align = 'center', rotateAngle = playerBlock.angle)
     #player block trail
-    if app.trail == True:
+    if app.horizontalTrail == True:
         for i in range(playerBlock.centerX - 75, playerBlock.centerX-25, 5):
             drawCircle(i, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'purple')
             drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
             drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
+    if app.verticalTrail == True: 
+        for i in range(int(playerBlock.centerY + 25), int(playerBlock.centerY + 75), 5):
+            drawCircle(playerBlock.centerX + random.randrange(-5,5), i, 2, fill = 'lightgreen')
+            drawCircle(playerBlock.centerX + randrange(-5,5), i+5, 2, fill = 'white')
+            drawCircle(playerBlock.centerX + random.randrange(-5,5), i+10, 2, fill = 'yellow')
     #if invincible
     if app.invincible == True:
         drawCircle(playerBlock.centerX,playerBlock.centerY, 60, fill = None, border = 'cyan', borderWidth = 2)
@@ -220,7 +226,7 @@ def drawGameoverScreen(app):
 
 def onKeyPress(app, key):
     #jump mechanics
-    if key == 'space' and app.jumping == False and app.falling == False:
+    if key == 'space' and app.jumping == False and app.falling == False and app.jetpack == False:
         app.jumping = True
     if key == 'm' and app.titleScreen == False and app.difficultySetting == False and app.gameover == True:
         app.width = 800
@@ -237,7 +243,7 @@ def onKeyPress(app, key):
         app.powerups = [jetpack.shape,invincible.shape]
         app.currentPowerup = app.powerups[random.randrange(0,2)]
         app.backgroundX = 0
-        app.trail = True
+        app.horizontalTrail = True
         app.mapSpeed = -5
         app.jumpMax = 125
         app.countdown = 3
@@ -268,10 +274,22 @@ def onKeyPress(app, key):
         app.jetpackJumping = False
         app.jetpackFalling = False
         app.powerupX = random.randrange(1600,2000)
+        app.verticalTrail = False
 
 def onKeyHold(app,keys):
-    if 'space' in keys and app.jetpack == True and app.jetpackFalling == False:
-        app.jetpackJumping = True
+    if app.jetpack == True:
+        if 'space' in keys and playerBlock.centerY + 100 >= 0:
+            app.jetpackJumping = True
+            app.jetpackFalling = False
+
+            
+
+
+def onKeyRelease(app,key):
+    if app.jetpack == True:
+        app.jetpackJumping = False
+        app.jetpackFalling = True
+            
         
 
 
@@ -379,10 +397,12 @@ def onStep(app):
     elif app.jetpack == False:
         app.floorY = app.mainFloorY
         app.falling = True
+        app.jetpackFalling = True
     #jumping and falling animation
 
     addAngle = (150/((app.floorY - app.jumpMax)/10))/2
     if app.jetpack == False:
+        app.verticalTrail = False
         if app.jumping == True:
             app.CountRelative += 0.05
             app.falling = False
@@ -396,7 +416,7 @@ def onStep(app):
             playerBlock.topLeft = (playerBlock.topLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.cos(math.degrees(playerBlock.angle))- (playerBlock.sideLength/2))
             playerBlock.bottomRight = (playerBlock.bottomRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.cos(math.degrees(playerBlock.angle))- (playerBlock.sideLength/2))
             playerBlock.bottomLeft = (playerBlock.bottomLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomLeft[1] * math.cos(math.degrees(playerBlock.angle))- (playerBlock.sideLength/2))
-            app.trail = False
+            app.horizontalTrail = False
             if app.CountRelative >= 0.5:
                 app.jumping = False
                 app.falling = True
@@ -410,7 +430,7 @@ def onStep(app):
                 changeX = app.startVelocity + (0.5*(15)*((app.time)**2))
                 playerBlock.centerY += changeX
                 playerBlock.angle += addAngle
-                app.trail = False
+                app.horizontalTrail = False
                 #updating imaginary block as the block goes up and down
                 playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
                 playerBlock.bottomValue = playerBlock.centerY - (playerBlock.sideLength/2)
@@ -429,14 +449,19 @@ def onStep(app):
                 playerBlock.topLeft = (playerBlock.leftValue, playerBlock.topValue)
                 playerBlock.bottomRight = (playerBlock.rightValue, playerBlock.bottomValue)
                 playerBlock.bottomLeft = (playerBlock.leftValue, playerBlock.bottomValue)
-                app.trail = True
+                app.horizontalTrail = True
                 app.falling = False
-    #jetpack powerup
     elif app.jetpack == True:
-        if app.jetpackJumping == False and app.jetpackFalling == False:
-            playerBlock.centerY = app.floorY - 25
+        if app.currentObstacle1 == 'floor' and ((playerBlock.centerX >= app.obstacleX - 75) and (playerBlock.centerX <= app.obstacleX + 75)):
+            app.floorY = floor.topY
+        else:
+            app.floorY = app.mainFloorY 
+        app.horizontalTrail = False
         playerBlock.angle = 0
-        if app.jetpackJumping == True and playerBlock.centerY + 25 >= 0:
+        app.jumping = False
+        app.falling = False
+        if app.jetpackJumping == True and playerBlock.centerY + 50 >= 50: 
+            app.verticalTrail = True
             playerBlock.centerY -= 10
             playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
             playerBlock.bottomValue = playerBlock.centerY - (playerBlock.sideLength/2)
@@ -444,17 +469,15 @@ def onStep(app):
             playerBlock.topLeft = (playerBlock.leftValue, playerBlock.topValue)
             playerBlock.bottomRight = (playerBlock.rightValue, playerBlock.bottomValue)
             playerBlock.bottomLeft = (playerBlock.leftValue, playerBlock.bottomValue)
-            if playerBlock.centerY + 25 >= 0:
-                app.jetpackJumping = False
-                app.jetpackFalling = True
-        if app.jetpackFalling == True and playerBlock.centerY + 25 <= 250:
+        elif app.jetpackJumping == False and app.jetpackFalling == True:
+            app.verticalTrail = False
+            app.CountRelative += 0.033333333333333333
+            if app.CountRelative >= 1 and app.gameover == False:
+                app.time += 1
+                app.CountRelative = 0
             if playerBlock.centerY+25 < app.floorY:
-                app.CountRelative += 0.033333333333333333
-                if app.CountRelative >= 1 and app.gameover == False:
-                    app.time += 1
-                    app.CountRelative = 0
-                changeX = app.startVelocity + (0.5*(15)*((app.time)**2))
-                playerBlock.centerY += changeX
+                changeY = app.startVelocity + (0.5*(15)*((app.time)**2))
+                playerBlock.centerY += changeY
             if playerBlock.centerY + 25 >= app.floorY:
                 app.time = 0
                 app.CountRelative = 0
@@ -464,7 +487,7 @@ def onStep(app):
                 playerBlock.topLeft = (playerBlock.leftValue, playerBlock.topValue)
                 playerBlock.bottomRight = (playerBlock.rightValue, playerBlock.bottomValue)
                 playerBlock.bottomLeft = (playerBlock.leftValue, playerBlock.bottomValue)
-                app.trail = True
+                app.horizontalTrail = True
                 app.jetpackFalling = False
 
 
@@ -633,6 +656,8 @@ def isValidObstacle(app,playerBlock):
             return True
     if app.currentObstacle1 == 'topSpike':
         if rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX-15, topSpike.centerY - 12, 30, 25.5):
+            return True
+        elif rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX-15, topSpike.centerY - 25, 100, 25):
             return True
 
 
