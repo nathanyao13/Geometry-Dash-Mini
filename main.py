@@ -397,7 +397,6 @@ def onStep(app):
     elif app.jetpack == False:
         app.floorY = app.mainFloorY
         app.falling = True
-        app.jetpackFalling = True
     #jumping and falling animation
 
     addAngle = (150/((app.floorY - app.jumpMax)/10))/2
@@ -452,10 +451,11 @@ def onStep(app):
                 app.horizontalTrail = True
                 app.falling = False
     elif app.jetpack == True:
-        if app.currentObstacle1 == 'floor' and ((playerBlock.centerX >= app.obstacleX - 75) and (playerBlock.centerX <= app.obstacleX + 75)):
+        if app.currentObstacle1 == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX - 25 <= app.obstacleX + floor.width):
             app.floorY = floor.topY
         else:
-            app.floorY = app.mainFloorY 
+            app.floorY = app.mainFloorY
+            app.jetpackFalling = True
         app.horizontalTrail = False
         playerBlock.angle = 0
         app.jumping = False
