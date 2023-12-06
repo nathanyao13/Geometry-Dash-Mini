@@ -1,3 +1,4 @@
+
 from cmu_graphics import*
 import os, pathlib
 import math
@@ -7,12 +8,10 @@ from obstacles import obstacle
 
 
 
+#code taken from the sound demo on piazza
 def loadSound(relativePath):
-    # Convert to absolute path (because pathlib.Path only takes absolute paths)
     absolutePath = os.path.abspath(relativePath)
-    # Get local file URL
     url = pathlib.Path(absolutePath).as_uri()
-    # Load Sound file from local URL
     return Sound(url)
 
 
@@ -22,11 +21,12 @@ floor = obstacle('floor', 150, 225, 800, 200)
 spike = obstacle('spike', 30, 237.5, 800, 224.5)
 doubleSpike = obstacle ('doubleSpike', 30, 237.5, 800, 224.5)
 tripleSpike = obstacle ('tripleSpike', 30, 237.5, 800, 224.5)
-topSpike = obstacle('topSpike',30, 800, random.randrange(100, 150), 150)
+topSpike = obstacle('topSpike',30, 800, int(random.randrange(100, 150)), 150)
+portal = obstacle('portal',50, 800, 0, 150)
 
 #features and power ups
-invincible = obstacle('invincible', 30, 800,random.randrange(150,175), 150)
-jetpack = obstacle('jetpack', 30, 800, random.randrange(150,175), 150)
+invincible = obstacle('invincible', 30, 800,int(random.randrange(150,175)), 150)
+jetpack = obstacle('jetpack', 30, 800, int(random.randrange(150,175)), 150)
 
 #player Block
 playerBlock =  block('purple', 150, 225, 50, 0, 15)
@@ -46,7 +46,7 @@ def onAppStart(app):
     app.blockAngle = 0
     app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape, topSpike.shape] 
     app.powerups = [jetpack.shape,invincible.shape]
-    app.currentPowerup = app.powerups[random.randrange(0,2)]
+    app.currentPowerup = app.powerups[int(random.randrange(0,2))]
     app.backgroundX = 0
     app.horizontalTrail = True
     app.mapSpeed = -5
@@ -56,7 +56,7 @@ def onAppStart(app):
     app.playScreen = False
     app.mainFloorY = 250
     app.floorObstacle = False
-    app.currentObstacle1 = app.obstacles[1]
+    app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
     app.floorY = 250
     app.pauseScreen = False
     app.gameover = False
@@ -81,7 +81,7 @@ def onAppStart(app):
     app.deleteJetpack = False
     app.jetpackJumping = False
     app.jetpackFalling = False
-    app.powerupX = random.randrange(1600,2000)
+    app.powerupX = int(random.randrange(1600,2000))
     app.verticalTrail = False
     app.collision = False
     app.deleteBlock = False
@@ -106,7 +106,6 @@ def redrawAll(app):
     #play screen 
     elif app.titleScreen == False and app.difficultySetting == False and app.gameover == False:
         app.mainMenuMusic.pause()
-        app.hexagonForceMusic.play(loop = True)
         drawPlayScreen(app)
     #gameover screen
     elif app.titleScreen == False and app.difficultySetting == False and app.gameover == True:
@@ -210,9 +209,9 @@ def drawPlayScreen(app):
     #player block trail
     if app.horizontalTrail == True and app.deleteBlock == False:
         for i in range(playerBlock.centerX - 75, playerBlock.centerX-25, 5):
-            drawCircle(i, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'purple')
-            drawCircle(i-5, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'white')
-            drawCircle(i-10, playerBlock.centerY + 25 - random.randrange(0,15), 2, fill = 'blue')
+            drawCircle(i, playerBlock.centerY + 25 - int(random.randrange(0,15)), 2, fill = 'purple')
+            drawCircle(i-5, playerBlock.centerY + 25 - int(random.randrange(0,15)), 2, fill = 'white')
+            drawCircle(i-10, playerBlock.centerY + 25 - int(random.randrange(0,15)), 2, fill = 'blue')
     if app.verticalTrail == True and app.deleteBlock == False: 
         for i in range(int(playerBlock.centerY + 25), int(playerBlock.centerY + 75), 5):
             drawCircle(playerBlock.centerX + random.randrange(-5,5), i, 2, fill = 'lightgreen')
@@ -230,10 +229,10 @@ def drawPlayScreen(app):
         app.hexagonForceMusic.pause()
         app.deathSound.play()
         for time in range(app.collisionTimer):
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'purple')
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'blue')
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'black')
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'white')
+            drawCircle(playerBlock.centerX + int(random.randrange(-int(playerBlock.sideLength//2),int(playerBlock.sideLength//2)))-int(time), int(random.randrange(int(playerBlock.centerY-25), int(playerBlock.centerY+25)))-int(time), 2, fill = 'purple')
+            drawCircle(playerBlock.centerX + int(random.randrange(-int(playerBlock.sideLength//2),int(playerBlock.sideLength//2)))-int(time), int(random.randrange(int(playerBlock.centerY-25), int(playerBlock.centerY+25)))-int(time), 2, fill = 'blue')
+            drawCircle(playerBlock.centerX + int(random.randrange(-int(playerBlock.sideLength//2),int(playerBlock.sideLength//2)))-int(time), int(random.randrange(int(playerBlock.centerY-25), int(playerBlock.centerY+25)))-int(time), 2, fill = 'black')
+            drawCircle(playerBlock.centerX + int(random.randrange(-int(playerBlock.sideLength//2),int(playerBlock.sideLength//2)))-int(time), int(random.randrange(int(playerBlock.centerY-25), int(playerBlock.centerY+25)))-int(time), 2, fill = 'white')
         
     #ScoreBoard
     drawLabel(f'Score: [{app.scoreCount}]', 400, 50, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
@@ -276,7 +275,7 @@ def onKeyPress(app, key):
         app.blockAngle = 0
         app.obstacles = [floor.shape,spike.shape, doubleSpike.shape, tripleSpike.shape, topSpike.shape] 
         app.powerups = [jetpack.shape,invincible.shape]
-        app.currentPowerup = app.powerups[random.randrange(0,2)]
+        app.currentPowerup = app.powerups[int(random.randrange(0,2))]
         app.backgroundX = 0
         app.horizontalTrail = True
         app.mapSpeed = -5
@@ -286,7 +285,7 @@ def onKeyPress(app, key):
         app.playScreen = False
         app.mainFloorY = 250
         app.floorObstacle = False
-        app.currentObstacle1 = app.obstacles[1]
+        app.currentObstacle1 = app.obstacles[random.randrange(0,2)]
         app.floorY = 250
         app.pauseScreen = False
         app.gameover = False
@@ -305,11 +304,11 @@ def onKeyPress(app, key):
         app.deleteJetpack = False
         app.jetpackJumping = False
         app.jetpackFalling = False
-        app.powerupX = random.randrange(1600,2000)
+        app.powerupX = int(random.randrange(1600,2000))
         app.verticalTrail = False
         app.collision = False
         app.deleteBlock = False
-        app.collisionTimer = 0
+        app.collisionTimer = 5
 
 def onKeyHold(app,keys):
     if app.jetpack == True:
@@ -342,10 +341,12 @@ def onStep(app):
     if app.difficultySetting == False and app.titleScreen == False and app.playScreen == False:
         app.relativeCount += 30
     if app.relativeCount == 900:
-        app.countdown = 2
+        app.countdown = 3
     elif app.relativeCount == 1800:
-        app.countdown = 1
+        app.countdown = 2
     elif app.relativeCount == 2700:
+        app.countdown = 1
+    elif app.relativeCount == 3600:
         app.countdown = 0
     #making sure that the map speed is different from the block jump speed so it runs smoother
     if app.countdown == 0:
@@ -445,7 +446,7 @@ def onStep(app):
             playerBlock.topValue = playerBlock.centerY - (playerBlock.sideLength/2)
             playerBlock.bottomValue = playerBlock.centerY - (playerBlock.sideLength/2)
             playerBlock.angle += addAngle
-            #finding a point after a rotation
+            #finding a point after a rotation : https://math.stackexchange.com/questions/270194/how-to-find-the-vertices-angle-after-rotation#:~:text=When%20a%20point%20(x%2Cy,%2Bycos(%CE%B8).
             playerBlock.topRight = (playerBlock.topRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topRight[1] * math.cos(math.degrees(playerBlock.angle))- (playerBlock.sideLength/2))
             playerBlock.topLeft = (playerBlock.topLeft[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.topLeft[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.topLeft[1] * math.cos(math.degrees(playerBlock.angle))- (playerBlock.sideLength/2))
             playerBlock.bottomRight = (playerBlock.bottomRight[0] * math.cos(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.sin(math.degrees(playerBlock.angle)), playerBlock.bottomRight[0] * math.sin(math.degrees(playerBlock.angle)) - playerBlock.bottomRight[1] * math.cos(math.degrees(playerBlock.angle))- (playerBlock.sideLength/2))
@@ -525,10 +526,6 @@ def onStep(app):
                 app.horizontalTrail = True
                 app.jetpackFalling = False
 
-
-
-
-
     #check collision
     if app.invincible == False and isValidObstacle(app,playerBlock) == True:
         app.collision = True
@@ -551,6 +548,7 @@ def onMousePress(app, mouseX, mouseY):
     #title screen options
     if app.titleScreen == True and (mouseX >= 350 and mouseX <= 450) and (mouseY >= 150 and mouseY <= 250):
         app.titleScreen = False
+        app.hexagonForceMusic.play(loop = True)
     elif app.titleScreen == True and (mouseX >=200 and mouseX <= 600) and (mouseY >= 225 and mouseY <= 425):
         app.titleScreen = False
         app.difficultySetting = True
@@ -703,6 +701,8 @@ def isValidObstacle(app,playerBlock):
             return True
         elif rectanglesOverlap(playerBlock.leftValue, playerBlock.topValue, playerBlock.sideLength, playerBlock.sideLength, app.obstacleX-15, topSpike.centerY - 25, 100, 25):
             return True
+    if playerBlock.centerY - 30 <= 0:
+        return True
 
 
 def isValidPowerup(app, playerBlock):
