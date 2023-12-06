@@ -1,8 +1,21 @@
 from cmu_graphics import*
+import os, pathlib
 import math
 import random
 from block import block
 from obstacles import obstacle
+
+
+
+def loadSound(relativePath):
+    # Convert to absolute path (because pathlib.Path only takes absolute paths)
+    absolutePath = os.path.abspath(relativePath)
+    # Get local file URL
+    url = pathlib.Path(absolutePath).as_uri()
+    # Load Sound file from local URL
+    return Sound(url)
+
+
 
 #obstacles
 floor = obstacle('floor', 150, 225, 800, 200)
@@ -12,11 +25,12 @@ tripleSpike = obstacle ('tripleSpike', 30, 237.5, 800, 224.5)
 topSpike = obstacle('topSpike',30, 800, random.randrange(100, 150), 150)
 
 #features and power ups
-invincible = obstacle('invincible', 30, 800,random.randrange(175,200), 150)
-jetpack = obstacle('jetpack', 30, 800, random.randrange(175,200), 150)
+invincible = obstacle('invincible', 30, 800,random.randrange(150,175), 150)
+jetpack = obstacle('jetpack', 30, 800, random.randrange(150,175), 150)
 
 #player Block
 playerBlock =  block('purple', 150, 225, 50, 0, 15)
+
 
 
 def onAppStart(app):
@@ -72,24 +86,31 @@ def onAppStart(app):
     app.collision = False
     app.deleteBlock = False
     app.collisionTimer = 5
+    #Geometry sounds downloaded from https://downloads.khinsider.com/game-soundtracks/album/geometry-dash
+    #deathSound is taken from the bullet sound demo from piazza
+    app.deathSound = loadSound("sounds/bulletSound.mp3")
+    app.mainMenuMusic = loadSound("sounds/mainMenu.mp3")
+    app.hexagonForceMusic = loadSound("sounds/hexagonForce.mp3")
 
 
 
 def redrawAll(app):
     #title screen 
     if app.titleScreen == True:
+        app.mainMenuMusic.play(loop = True)
         drawTitleScreen(app)
     #speed/difficulty screen
     elif app.difficultySetting == True and app.titleScreen == False:
+        app.mainMenuMusic.play(loop = True)
         drawDifficultyScreen(app)
     #play screen 
     elif app.titleScreen == False and app.difficultySetting == False and app.gameover == False:
+        app.mainMenuMusic.pause()
+        app.hexagonForceMusic.play(loop = True)
         drawPlayScreen(app)
-    #pause screen 
-    #elif app.titleScreen == False and app.difficultySetting == False and app.pauseScreen == True:
-        #drawPauseScreen(app)
     #gameover screen
     elif app.titleScreen == False and app.difficultySetting == False and app.gameover == True:
+        app.mainMenuMusic.play(loop = True)
         drawGameoverScreen(app)
 #-------------------------------------------------------------------------------
 def drawTitleScreen(app):
@@ -206,11 +227,13 @@ def drawPlayScreen(app):
     
     #collision animation
     if app.collision == True:
+        app.hexagonForceMusic.pause()
+        app.deathSound.play()
         for time in range(app.collisionTimer):
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'lightgreen')
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'white')
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'lightgreen')
-            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2), random.randrange(playerBlock.centerY-25, playerBlock.centerY+25), 2, fill = 'white')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'purple')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'blue')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'black')
+            drawCircle(playerBlock.centerX + random.randrange(-playerBlock.sideLength/2,playerBlock.sideLength/2)-time, random.randrange(playerBlock.centerY-25, playerBlock.centerY+25)-time, 2, fill = 'white')
         
     #ScoreBoard
     drawLabel(f'Score: [{app.scoreCount}]', 400, 50, size=25, font='orbitron', bold=True, fill='lightgreen', border= 'black', borderWidth=2,opacity=100)
@@ -412,7 +435,7 @@ def onStep(app):
     #jumping and falling animation
 
     addAngle = (150/((app.floorY - app.jumpMax)/10))/2
-    if app.jetpack == False:
+    if app.jetpack == False and app.collision == False:
         app.verticalTrail = False
         if app.jumping == True:
             app.CountRelative += 0.05
@@ -462,7 +485,7 @@ def onStep(app):
                 playerBlock.bottomLeft = (playerBlock.leftValue, playerBlock.bottomValue)
                 app.horizontalTrail = True
                 app.falling = False
-    elif app.jetpack == True:
+    elif app.jetpack == True and app.collision == False:
         if app.currentObstacle1 == 'floor' and (playerBlock.centerX >= app.obstacleX and playerBlock.centerX - 25 <= app.obstacleX + floor.width):
             app.floorY = floor.topY
         else:
@@ -708,6 +731,7 @@ def rectanglesOverlap(left1, top1, width1, height1,
     right1 = left1 + width1 
     right2 = left2 + width2
     return (bottom1 >= top2 and bottom2 >= top1 and right1  >= left2 and right2 >= left1)
+
 
 #intersection of a line (ccw and intersection)--> code/algorithm of line intersection from https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/ 
 def ccw(A,B,C):
