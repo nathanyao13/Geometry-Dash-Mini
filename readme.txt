@@ -9,10 +9,10 @@ complexity are the two power-ups, gravity affected jumping, trail for loop
 animation, and rectangle/triangle collision. 
 
 
-How to run the project: Make sure VSCODE, python, os, and pathlib, are all 
+How to run the project: Make sure VSCODE, python3, os, and pathlib, are all 
 installed on the computer. The whole codebase folder should be opened in VSCODE. 
-All the files should be run through main.py. Run main.py and the Geometry Dash 
-Mini game should pop up in a window. 
+All the files should be run through main.py. Type "python3 main.py" in your local 
+terminal and the Geometry Dash Mini game should pop up in a window. 
 
 
 Mouse clicking:  The only mouse clicking should be done on the menu screen and 
